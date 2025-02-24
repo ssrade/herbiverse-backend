@@ -1,25 +1,66 @@
 const User = require("../models/user.model");
+const asyncHandler = require("../utils/asyncHandler");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.registerUser = async (req, res) => {
+// Generate JWT Token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+};
+
+// Register New User
+const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-  const user = new User({ name, email, password });
-  await user.save();
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  res.cookie("token", token, { httpOnly: true }).json({ user, token });
-};
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
 
-exports.loginUser = async (req, res) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(400);
+    throw new Error("Invalid user data");
+  }
+});
+
+// Login User
+const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOne({ email });
-  if (!user || !(await bcrypt.compare(password, user.password)))
-    return res.status(401).json({ message: "Invalid Credentials" });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  res.cookie("token", token, { httpOnly: true }).json({ user, token });
-};
+  if (user && (await bcrypt.compare(password, user.password))) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(401);
+    throw new Error("Invalid email or password");
+  }
+});
 
-exports.logoutUser = (req, res) => {
-  res.cookie("token", "", { expires: new Date(0) }).json({ message: "Logged out" });
-};
+// Logout User
+const logoutUser = asyncHandler(async (req, res) => {
+  res.json({ message: "User logged out successfully" });
+});
+
+module.exports = { registerUser, loginUser, logoutUser };

@@ -4,8 +4,9 @@
   "description": "backend for herbiverse",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
-  },
+  "start": "nodemon src/index.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "keywords": [
     "node"
   ],
@@ -21,5 +22,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.1",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
