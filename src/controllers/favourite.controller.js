@@ -56,6 +56,33 @@ const getFavourites = asyncHandler(async (req, res) => {
   }
 });
 
+// ✅ Check if a specific plant is in favourites
+const checkFavourite = asyncHandler(async (req, res) => {
+  const { id: plantId } = req.params;
+  
+  // 🔹 Validate plantId format (MongoDB ObjectId)
+  if (!mongoose.Types.ObjectId.isValid(plantId)) {
+    return res.status(400).json({ error: "Invalid Plant ID format" });
+  }
+
+  try {
+    // Check if the plant is in the user's favourites
+    const favourite = await Favourite.findOne({ 
+      user: req.user.id, 
+      plant: plantId 
+    });
+    
+    // Send back a boolean response
+    res.status(200).json({ 
+      isFavourite: !!favourite,
+      plantId: plantId
+    });
+  } catch (error) {
+    console.error("🔥 ERROR Checking Favourite:", error);
+    res.status(500).json({ error: "Failed to check favourite status", details: error.message });
+  }
+});
+
 // ✅ Remove a plant from favourites
 const removeFavourite = asyncHandler(async (req, res) => {
   const { id: plantId } = req.params;
@@ -81,4 +108,4 @@ const removeFavourite = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { addFavourite, getFavourites, removeFavourite };
+module.exports = { addFavourite, getFavourites, removeFavourite, checkFavourite };

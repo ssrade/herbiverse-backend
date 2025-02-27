@@ -10,7 +10,7 @@ const router = express.Router();
 // ✅ Register Routes
 router.use("/users", userRoutes);
 router.use("/plants", plantRoutes); // ✅ Added Plant Route
-router.use("/favourites", favouriteRoutes);
+router.use("/favourite", favouriteRoutes);
 router.use("/notes", noteRoutes);
 
 module.exports = router;

@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 // Register API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/plants", plantRoutes);
-app.use("/api/favourites", favoriteRoutes);
+app.use("/api/favourite", favoriteRoutes);
 app.use("/api/notes", noteRoutes);
 
 // Error Handling Middleware
