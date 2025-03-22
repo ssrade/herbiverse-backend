@@ -41,31 +41,43 @@ const getPlantById = asyncHandler(async (req, res) => {
 
 // Get a specific plant by name
 const getPlantByName = asyncHandler(async (req, res) => {
-  const plantName = req.params.name;
-  
-  if (!plantName) {
-    res.status(400);
-    throw new Error("Plant name is required");
-  }
-  
-  // Create a case-insensitive regex to match the plant name
-  const nameRegex = new RegExp(`^${plantName}$`, 'i');
-  
-  const plant = await Plant.findOne({ name: nameRegex });
-  
-  if (!plant) {
+  try {
+    const plantName = req.params.name;
+    
+    // Add logging
+    console.log("Original plant name parameter:", plantName);
+    
+    // First, try to find the plant with a case-insensitive search
+    const plants = await Plant.find();
+    console.log("Total plants in database:", plants.length);
+    
+    // Find the plant with a case-insensitive comparison
+    const plant = plants.find(p => 
+      p.name.toLowerCase() === plantName.toLowerCase()
+    );
+    
+    if (plant) {
+      console.log("Plant found:", plant.name);
+      return res.status(200).json(plant);
+    }
+    
+    // If not found, log all plant names to help debugging
+    console.log("Available plant names:", plants.map(p => p.name));
+    
     res.status(404);
     throw new Error("Plant not found");
+  } catch (error) {
+    console.error("Error in getPlantByName:", error);
+    res.status(500);
+    throw error;
   }
-  
-  res.status(200).json(plant);
 });
 
 // Search plants by partial name
 const searchPlants = asyncHandler(async (req, res) => {
   const { query } = req.query;
-  
   let filter = {};
+  
   if (query) {
     filter = {
       $or: [
